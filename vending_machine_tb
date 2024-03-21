@@ -1,0 +1,110 @@
+// 100 Days of RTL
+
+// Abilash P
+
+// Vending Machine
+
+module vending_machine_tb();
+  reg clk, rst, select_snack_or_drink;
+  reg [1:0]select_snack, select_drink;
+  reg [5:0]money_inp;
+  
+  wire off_val, dispense_out;
+  wire [1:0]snack_or_drink_out;;
+  wire avail_out, stop_out, over_out, refill_out;
+  wire [1:0]snack_out, drink_out;
+  wire [5:0]balance_out;
+  
+  wire [2:0]s_chips_avail, s_cookies_avail;
+  wire [2:0]s_chocolate_avail;
+  wire [2:0]s_icecream_avail;
+  wire [2:0]d_cocacola_avail, d_juice_avail;
+  wire [2:0]d_coffee_avail,d_7up_avail;
+  
+  vending_machine DUT(.clk(clk), .rst(rst), 
+                      .select_snack_or_drink(select_snack_or_drink),
+                      .select_snack(select_snack),
+                      .select_drink(select_drink),
+                      .money_inp(money_inp),
+                      .off_val(off_val),
+                      .snack_or_drink_out(snack_or_drink_out),
+                      .snack_out(snack_out),
+                      .drink_out(drink_out),
+                      .s_chips_avail(s_chips_avail),
+                      .s_cookies_avail(s_cookies_avail),
+                      .s_chocolate_avail(s_chocolate_avail),
+                      .s_icecream_avail(s_icecream_avail),
+                      .d_cocacola_avail(d_cocacola_avail),
+                      .d_juice_avail(d_juice_avail),
+                      .d_coffee_avail(d_coffee_avail),
+                      .d_7up_avail(d_7up_avail),
+                      .avail_out(avail_out),
+                      .balance_out(balance_out),
+                      .dispense_out(dispense_out),
+                      .stop_out(stop_out),
+                      .over_out(over_out), 
+                      .refill_out(refill_out));
+  
+  initial
+    begin
+      clk=1;
+      forever #5 clk=~clk;
+    end
+  
+  initial
+    begin
+      select_snack_or_drink = 1;
+      select_snack = 0;
+      select_drink = 0;
+      money_inp = 50;
+      rst = 1;
+      #10;
+     
+      rst = 0;
+      #60;
+      
+      select_snack_or_drink = 0;
+      select_snack = 0;
+      select_drink = 0;
+      money_inp = 100;
+      #60;
+      
+      select_snack_or_drink = 1;
+      select_snack = 2;
+      select_drink = 2;
+      money_inp    = 120;
+      #60;
+      
+      select_snack_or_drink = 0;
+      select_snack = 3;
+      select_drink = 3;
+      money_inp = 45;
+      #60;
+      
+      select_snack_or_drink = 1;
+      select_snack = 1;
+      select_drink = 1;
+      money_inp = 10;
+      #50;
+      
+      select_snack_or_drink = 1;
+      select_snack = 1;
+      select_drink = 1;
+      money_inp = 20;
+      #30;
+      
+      select_snack_or_drink = 1;
+      select_snack = 1;
+      select_drink = 1;
+      money_inp = 20;
+      #250;
+      $finish;
+    end
+  
+  initial
+    begin
+       $dumpfile("dump.vcd");
+       $dumpvars(1);
+     end
+  
+endmodule
