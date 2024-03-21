@@ -1,0 +1,479 @@
+// 100 Days of RTL
+
+// Abilash P
+
+// Vending Machine
+
+module vending_machine(clk, rst, 
+                       select_snack_or_drink,
+                       select_snack,
+                       select_drink,
+                       money_inp,
+                       off_val,
+                       snack_or_drink_out,
+                       snack_out,
+                       drink_out,
+                       s_chips_avail,
+                       s_cookies_avail,
+                       s_chocolate_avail,
+                       s_icecream_avail,
+                       d_cocacola_avail,
+                       d_juice_avail,
+                       d_coffee_avail,
+                       d_7up_avail,
+                       avail_out,
+                       balance_out,
+                       dispense_out,
+                       stop_out,
+                       over_out, 
+                       refill_out);
+  
+  parameter IDLE_STATE      = 4'b0000;
+  parameter SELECT_1        = 4'b0001;
+  parameter SELECT_2        = 4'b0010;
+  parameter SELECT_3        = 4'b0011;
+  parameter AVAIL_CHECK     = 4'b0100;
+  parameter AMOUNT_COLLECT  = 4'b0101;
+  parameter BALANCE_STATE   = 4'b0111;
+  parameter DISPENSE_STATE  = 4'b1000;
+  parameter STOP_STATE      = 4'b1001;
+  parameter OVER_STATE      = 4'b1010;
+  parameter REFILL_STATE    = 4'b1011;
+  
+  parameter SNACK_CHIPS    = 10;
+  parameter SNACK_COOKIES  = 15;
+  parameter SNACK_CHOCOLATE= 20;
+  parameter SNACK_ICECREAM = 40;
+  
+  parameter DRINK_COCACOLA = 30;
+  parameter DRINK_JUICE    = 25;
+  parameter DRINK_COFFEE   = 15;
+  parameter DRINK_7UP      = 25;
+  
+  parameter SNACK_CHIPS_AVAIL    = 5;
+  parameter SNACK_COOKIES_AVAIL  = 3;
+  parameter SNACK_CHOCOLATE_AVAIL= 5;
+  parameter SNACK_ICECREAM_AVAIL = 3;
+  
+  parameter DRINK_COCACOLA_AVAIL = 3;
+  parameter DRINK_JUICE_AVAIL    = 5;
+  parameter DRINK_COFFEE_AVAIL   = 3;
+  parameter DRINK_7UP_AVAIL      = 5;
+  
+  input clk, rst, select_snack_or_drink;
+  input [1:0]select_snack, select_drink;
+  input [5:0]money_inp;
+  
+  output reg off_val, dispense_out;
+  output reg [1:0]snack_or_drink_out;
+  output reg avail_out, stop_out, over_out, refill_out;
+  output reg [1:0]snack_out, drink_out;
+  output reg [5:0]balance_out;
+  
+  output reg [2:0]s_chips_avail, s_cookies_avail;
+  output reg [2:0]s_chocolate_avail;
+  output reg [2:0]s_icecream_avail;
+  output reg [2:0]d_cocacola_avail, d_juice_avail;
+  output reg [2:0]d_coffee_avail;
+  output reg [2:0]d_7up_avail;
+  
+  reg [3:0]state, next_state;
+  
+  always @(posedge clk)
+    begin
+      if(rst)
+        begin
+          s_chips_avail    <=SNACK_CHIPS_AVAIL;
+          s_cookies_avail  <=SNACK_COOKIES_AVAIL;
+          s_chocolate_avail<=SNACK_CHOCOLATE_AVAIL;
+          s_icecream_avail <=SNACK_ICECREAM_AVAIL;
+          
+          d_cocacola_avail <=DRINK_COCACOLA_AVAIL;
+          d_juice_avail    <=DRINK_JUICE_AVAIL;
+          d_coffee_avail   <=DRINK_COFFEE_AVAIL;
+          d_7up_avail      <=DRINK_7UP_AVAIL;
+          state            <=IDLE_STATE;
+        end
+      
+      else
+        state<=next_state;
+    end
+  
+  always @(state or select_snack_or_drink)
+    begin 
+      case(state)
+        IDLE_STATE: begin
+          off_val            <= 1;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          next_state<= SELECT_1;
+        end
+        
+        SELECT_1: begin
+          off_val            <= 0;
+          snack_or_drink_out <= select_snack_or_drink;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          if(select_snack_or_drink==1)
+            next_state <= SELECT_2;   //snack state
+          else
+            next_state <= SELECT_3;   //drink state
+        end
+        
+        SELECT_2: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= select_snack;
+          drink_out          <= 0;
+          balance_out        <= 0;
+          avail_out          <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          next_state<=AVAIL_CHECK;
+        end
+        
+        SELECT_3: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          drink_out          <= select_drink;
+          snack_out          <= 0;
+          balance_out        <= 0;
+          avail_out          <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          next_state<=AVAIL_CHECK;
+        end
+        
+        AVAIL_CHECK: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          if(s_chips_avail == 0 || s_cookies_avail == 0 || s_chocolate_avail == 0 || s_icecream_avail == 0 || d_cocacola_avail == 0  || d_juice_avail == 0 || d_coffee_avail == 0 || d_7up_avail == 0) 
+            begin
+              avail_out  <= 0;
+              next_state <= OVER_STATE;
+            end
+          
+          else 
+            begin
+              avail_out  <= 1;
+              if(select_snack_or_drink == 1) 
+                begin 
+                  case(select_snack)
+                    0: s_chips_avail <= s_chips_avail - 1;
+                    1: s_cookies_avail <= s_cookies_avail - 1;
+                    2: s_chocolate_avail <= s_chocolate_avail - 1;
+                    3: s_icecream_avail <= s_icecream_avail - 1;
+                  endcase
+                  end
+              else 
+                begin 
+                  case(select_drink)
+                    0: d_cocacola_avail <= d_cocacola_avail - 1;
+                    1: d_juice_avail <= d_juice_avail - 1;
+                    2: d_coffee_avail <= d_coffee_avail - 1;
+                    3: d_7up_avail <= d_7up_avail - 1;
+                  endcase
+                end
+              next_state <= AMOUNT_COLLECT; 
+            end
+        end
+        
+        AMOUNT_COLLECT: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+            
+          if(select_snack_or_drink==1) //1 for snack
+            begin
+             if(select_snack==0)
+               begin
+                 if(money_inp==SNACK_CHIPS)
+                   next_state<=DISPENSE_STATE;
+                 else if(money_inp>SNACK_CHIPS)
+                   next_state<=BALANCE_STATE;
+                 else
+                   next_state<=STOP_STATE;
+               end
+              
+              else if(select_snack==1)
+                begin
+                  if(money_inp==SNACK_COOKIES)
+                   next_state<=DISPENSE_STATE;
+                  else if(money_inp>SNACK_COOKIES)
+                   next_state<=BALANCE_STATE;
+                 else
+                   next_state<=STOP_STATE;
+               end
+              
+              else if(select_snack==2)
+                begin
+                  if(money_inp==SNACK_CHOCOLATE)
+                    next_state<=DISPENSE_STATE;
+                  else if(money_inp>SNACK_CHOCOLATE)
+                   next_state<=BALANCE_STATE;
+                 else
+                   next_state<=STOP_STATE;
+               end
+              
+              else
+                begin
+                  if(money_inp==SNACK_ICECREAM)
+                    next_state<=DISPENSE_STATE;
+                  else if(money_inp>SNACK_ICECREAM)
+                   next_state<=BALANCE_STATE;
+                  else
+                   next_state<=STOP_STATE;
+               end
+            end
+          
+          else
+            begin
+              if(select_drink==0)
+                begin
+                  if(money_inp==DRINK_COCACOLA)
+                    next_state<=DISPENSE_STATE;
+                  else if(money_inp>DRINK_COCACOLA)
+                    next_state<=BALANCE_STATE;
+                  else
+                   next_state<=STOP_STATE;
+                end
+              
+              else if(select_drink==1)
+                begin
+                  if(money_inp==DRINK_JUICE)
+                    next_state<=DISPENSE_STATE;
+                  else if(money_inp>DRINK_JUICE)
+                    next_state<=BALANCE_STATE;
+                  else
+                    next_state<=STOP_STATE;
+                end
+              
+              else if(select_drink==2)
+                 begin
+                   if(money_inp==DRINK_COFFEE)
+                     next_state<=DISPENSE_STATE;
+                   else if(money_inp>DRINK_COFFEE)
+                     next_state<=BALANCE_STATE;
+                   else
+                     next_state<=STOP_STATE;
+                 end
+              
+              else
+                begin
+                  if(money_inp==DRINK_7UP) 
+                    next_state<=DISPENSE_STATE;
+                   else if(money_inp>DRINK_7UP)
+                     next_state<=BALANCE_STATE;
+                   else
+                     next_state<=STOP_STATE;
+                end
+            end
+        end
+        
+        BALANCE_STATE: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          if(select_snack_or_drink==1) //1 for snack
+            begin
+              if(select_snack==0)
+                balance_out<=money_inp-SNACK_CHIPS;
+              else if(select_snack==1)
+                balance_out<=money_inp-SNACK_COOKIES;
+              else if(select_snack==2)
+                balance_out<=money_inp-SNACK_CHOCOLATE;
+              else
+                balance_out<=money_inp-SNACK_ICECREAM;
+            end
+          
+          else
+            begin
+              if(select_drink==0)
+                balance_out<=money_inp-DRINK_COCACOLA;
+              else if(select_drink==1)
+                balance_out<=money_inp-DRINK_JUICE;
+              else if(select_drink==2)
+                balance_out<=money_inp-DRINK_COFFEE;
+              else
+                balance_out<=money_inp-DRINK_7UP;
+            end
+          next_state<=DISPENSE_STATE;
+        end
+        
+        DISPENSE_STATE: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 1;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 0;
+            
+          next_state<=SELECT_1;
+        end
+        
+        STOP_STATE: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 1;
+          over_out           <= 0;
+          refill_out         <= 0;
+          
+          if(select_snack_or_drink == 1) 
+            begin 
+              case(select_snack)
+                0: s_chips_avail <= s_chips_avail + 1;
+                1: s_cookies_avail <= s_cookies_avail + 1;
+                2: s_chocolate_avail <= s_chocolate_avail + 1;
+                3: s_icecream_avail <= s_icecream_avail + 1;
+              endcase
+            end
+          
+          else 
+            begin
+              case(select_drink)
+                0: d_cocacola_avail <= d_cocacola_avail + 1;
+                1: d_juice_avail <= d_juice_avail + 1;
+                2: d_coffee_avail <= d_coffee_avail + 1;
+                3: d_7up_avail <= d_7up_avail + 1;
+              endcase
+            end
+          next_state<=AVAIL_CHECK;
+        end
+        
+        OVER_STATE: begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 1;
+          refill_out         <= 0;
+            
+          next_state<=REFILL_STATE;
+        end
+          
+        REFILL_STATE:  begin
+          off_val            <= 0;
+          snack_or_drink_out <= 0;
+          snack_out          <= 0;
+          drink_out          <= 0;
+          avail_out          <= 0;
+          balance_out        <= 0;
+          dispense_out       <= 0;
+          stop_out           <= 0;
+          over_out           <= 0;
+          refill_out         <= 1;
+          
+          if(select_snack_or_drink==1) //1 for snack
+            begin
+              if(select_snack==0)
+                begin
+                  avail_out  <= 1;
+                  s_chips_avail <= s_chips_avail+1;
+                end
+              
+              else if(select_snack==1)
+                begin
+                  avail_out <= 1;
+                  s_cookies_avail <= s_cookies_avail+1;
+                end
+                  
+              else if(select_snack==2)
+                begin
+                  avail_out <= 1;
+                  s_chocolate_avail <= s_chocolate_avail+1;
+                end
+              
+              else
+                begin
+                  avail_out <= 1;
+                  s_icecream_avail <= s_icecream_avail+1;
+                end
+            end
+          
+          else
+            begin
+              if(select_drink==0)
+                begin
+                  avail_out  <= 1;
+                  d_cocacola_avail <= d_cocacola_avail+1;
+                end
+              
+              else if(select_drink==1)
+                begin
+                  avail_out  <= 1;
+                  d_juice_avail <= d_juice_avail+1;
+                end
+              
+              else if(select_drink==2)
+                begin
+                  avail_out  <= 1;
+                  d_coffee_avail <= d_coffee_avail+1;
+                end
+              
+              else
+                begin
+                  avail_out  <= 1;
+                  d_7up_avail <= d_7up_avail+1;
+                end
+            end
+          next_state<=SELECT_1;
+        end
+      endcase
+    end
+endmodule
